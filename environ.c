@@ -1,58 +1,67 @@
 #include "shell.h"
-char **_copyenv(void);
-void free_env(void);
-char **_getenv(const char *var);
+
 /**
- * _copyenv - Creates a copy of the environment.
- *
- * Return: If an error occurs - NULL.
- *         O/w - a double pointer to the new copy.
+ * print_env - a function that prints the environment.
+ * Return: 0.
  */
-char **_copyenv(void)
+
+void print_env(void)
 {
-char **new_environ;
-size_t size;
-int index;
-for (size = 0; environ[size]; size++)
-;
-new_environ = malloc(sizeof(char *) * (size + 1));
-if (!new_environ)
-return (NULL);
-for (index = 0; environ[index]; index++)
-{
-new_environ[index] = malloc(_strlen(environ[index]) + 1);
-if (!new_environ[index])
-{
-for (index--; index >= 0; index--)
-free(new_environ[index]);
-free(new_environ);
-return (NULL); }
-_strcpy(new_environ[index], environ[index]); }
-new_environ[index] = NULL;
-return (new_environ); }
-/**
- * free_env - Frees the the environment copy.
- */
-void free_env(void)
-{
-int index;
-for (index = 0; environ[index]; index++)
-free(environ[index]);
-free(environ);
+	int i = 0;
+
+	while (environ[i])
+	{
+		/* prints in form of "variable=value" */
+		write(STDOUT_FILENO, environ[i], _strlen(environ[i]));
+		i++;
+		write(STDOUT_FILENO, "\n", 1);
+	}
 }
 /**
- * _getenv - Gets an environmental variable from the PATH.
- * @var: The name of the environmental variable to get.
- *
- * Return: If the environmental variable does not exist - NULL.
- *         Otherwise - a pointer to the environmental variable.
+ * _getenv - a function that gets an environment variable.
+ * (without using getenv)
+ * @name: the variable to be compared with environ.
+ * Return: char.
  */
-char **_getenv(const char *var)
+char *_getenv(const char *name)
 {
-int index, len;
-len = _strlen(var);
-for (index = 0; environ[index]; index++)
+	int i, j, length = 0;
+
+	while (name[length] != '\0')
+		length++;
+
+	if (length == 0)
+		return (NULL);
+
+	for (i = 0 ; environ[i] != NULL ; i++)
+	{
+		for (j = 0 ; name[j] != '\0' ; j++)
+		{
+			if (environ[i][j] != name[j])
+				break;
+		}
+		if (name[j] == '\0')
+			return (environ[i] + j + 1);
+	}
+	return (NULL);
+}
+/**
+ * _which - This function checks whether a file exists in PATH
+ * @file: The file to check
+ * Return: On success, 0. Otherwise, -1.
+ */
+
+int _which(char *file)
 {
-if (_strncmp(var, environ[index], len) == 0)
-return (&environ[index]); }
-return (NULL); }
+	struct stat status;
+
+	while (file)
+	{
+		if (stat(file, &status) == 0)
+		{
+			return (0);
+		}
+		break;
+	}
+	return (-1);
+}
